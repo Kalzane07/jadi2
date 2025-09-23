@@ -17,12 +17,19 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	jadi.GET("/logout", controllers.Logout)
 
 	// ================= ROUTES ADMIN (UNTUK HALAMAN WEB) =================
-	// Grup ini khusus untuk halaman-halaman yang merender HTML dan butuh role "admin".
 	admin := jadi.Group("/admin")
 	admin.Use(controllers.AuthRequired(), controllers.RoleRequired("admin"))
 	{
 		// ================= DASHBOARD =================
 		admin.GET("/", controllers.AdminPanel)
+
+		// ================= USER CRUD =================
+		admin.GET("/users", controllers.UserIndex)
+		admin.GET("/users/create", controllers.UserCreateForm)
+		admin.POST("/users/store", controllers.UserCreate)
+		admin.GET("/users/edit/:id", controllers.UserEditForm)
+		admin.POST("/users/update/:id", controllers.UserUpdate)
+		admin.GET("/users/delete/:id", controllers.UserDelete)
 
 		// ================= POSBANKUM CRUD =================
 		admin.GET("/posbankum", controllers.PosbankumIndex)
@@ -64,16 +71,10 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	}
 
 	// ================= ROUTES API (UNTUK DATA JSON) =================
-	// Grup ini khusus untuk endpoint API yang mengembalikan data JSON.
-	// Cukup pakai AuthRequired() saja, karena tidak merender halaman admin.
 	api := jadi.Group("/api")
 	api.Use(controllers.AuthRequired())
 	{
 		api.GET("/kelurahan/search", controllers.KelurahanSearch)
-		api.GET("/posbankum/search", controllers.PosbankumSearch)
-		api.GET("/kadarkum/search", controllers.PosbankumSearch)
-		api.GET("/pja/search", controllers.PosbankumSearch)
-		api.GET("/paralegal/search", controllers.PosbankumSearch)
 	}
 
 	// ================= ROUTES USER =================
@@ -81,5 +82,22 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	user.Use(controllers.AuthRequired(), controllers.RoleRequired("user"))
 	{
 		user.GET("/", controllers.UserDashboard)
+	}
+
+	// ================== DOKUMEN YANG DIPROTEKSI ==================
+	dokumen := jadi.Group("/dokumen")
+	dokumen.Use(controllers.AuthRequired())
+	{
+		// POSBANKUM
+		dokumen.GET("/posbankum/:id", controllers.GetPosbankumDokumen)
+
+		// PARALEGAL
+		dokumen.GET("/paralegal/:id", controllers.GetParalegalDokumen)
+
+		// PJA
+		dokumen.GET("/pja/:id", controllers.GetPJADokumen)
+
+		// KADARKUM
+		dokumen.GET("/kadarkum/:id", controllers.GetKadarkumDokumen)
 	}
 }
